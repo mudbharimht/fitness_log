@@ -1,75 +1,142 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'FreeForm.dart';
+import 'LowerPage.dart';
+import 'UpperPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:commuter/noname/WorkoutItem.dart';
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
-
   @override
   State<Homescreen> createState() => _HomescreenState();
 }
 
 class _HomescreenState extends State<Homescreen> {
+  @override
+  Widget build(BuildContext context) {
+    return NavBar();
+  }
+}
 
-  DateTime currentDate = DateTime.now();
-  int _selectedIndex = 0;
-  NavigationRailLabelType labelType = NavigationRailLabelType.all;
-  bool showLeading = false;
-  bool showTrailing = false;
-  double groupAlignment = -1.0;
-  bool _isLower = false;
-  bool _isUpper = false;
-  bool _isFreeForm = false;
+class NavBar extends StatefulWidget {
+  const NavBar({super.key});
+  @override
+  State<NavBar> createState() => _NavBar();
+}
+
+class _NavBar extends State<NavBar> {
+
+ Future <List<Workout>> loadData() async{
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+List<String> workoutList = prefs.getStringList('workouts') ?? [];
+
+List<Workout> _workouts = workoutList
+    .map((w) => Workout.fromJson(jsonDecode(w)))
+    .toList();
+    return _workouts;
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(children: [
-          Text('Workout App'),
-          Text(
-            "${DateTime.now().day}||${DateTime.now().month}",
-            style: TextStyle(fontSize: 12),
-            )
-        ],),
+        title: Row(
+          children: [
+            Text('Workout App'),
+            Text(
+              "${DateTime.now().day}||${DateTime.now().month}",
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.format_list_numbered),
             tooltip: 'Show Workout Logs',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('This is a snackbar')),
+                const SnackBar(content: Text('This is a snacknnbar')),
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.fitness_center),
-            tooltip: 'Show Workout Page',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) {
-                    return Scaffold(
-                      appBar: AppBar(title: const Text('Next page')),
-                      body: const Center(
-                        child: Text(
-                          'This is the next page',
-                          style: TextStyle(fontSize: 24),
-                        ),
-                      ),
-                    );
-                  },
+         IconButton(
+  icon: const Icon(Icons.format_list_numbered),
+  tooltip: 'Show Workout Logs',
+  onPressed: () async {
+    List<Workout> workouts = await loadData();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: const Text('Workout Logbook')),
+          body: SingleChildScrollView(
+            scrollDirection: Axis.horizontal, // Table might overflow
+            child: Table(
+              border: TableBorder.all(),
+              defaultColumnWidth: IntrinsicColumnWidth(),
+              children: [
+                TableRow(
+                  children: [
+                    Text(' Date '),
+                    Text(' Body Group '),
+                    Text(' Type '),
+                    Text(' Workout Mins '),
+                    Text(' Break Mins '),
+                  ],
                 ),
-              );
-            },
+                for (var w in workouts)
+                  TableRow(
+                    children: [
+                      Text("  ${w.date.substring(0,10)}  "),
+                      Text("  ${w.bodyGroup}  "),
+                      Text("  ${w.workoutType}  "),
+                      Text("  ${w.workoutMins.toStringAsFixed(1)}  "),
+                      Text("  ${w.breakMins.toStringAsFixed(1)}  "),
+                    ],
+                  ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  },
+)
+,
         ],
       ),
-      body: SafeArea(
+      body: SideRail(),
+    );
+  }
+}
 
-        child: 
-            Container(
-              color: Color.fromARGB(200, 200, 200, 150),
-              width: MediaQuery.sizeOf(context).width,
-              child: Row(
+class SideRail extends StatefulWidget {
+  const SideRail({super.key});
+
+  @override
+  State<SideRail> createState() => _SideRail();
+}
+
+class _SideRail extends State<SideRail> {
+  int _selectedIndex = 0;
+
+  bool _isLower = false;
+  bool _isUpper = false;
+  bool _isFreeForm = false;
+
+  NavigationRailLabelType labelType = NavigationRailLabelType.all;
+  bool showLeading = false;
+  bool showTrailing = false;
+  double groupAlignment = -1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SizedBox(
+        //color: Color.fromARGB(200, 0, 200, 150),
+        width: MediaQuery.sizeOf(context).width,
+        child: Row(
           spacing: 10,
           children: <Widget>[
             NavigationRail(
@@ -83,10 +150,17 @@ class _HomescreenState extends State<Homescreen> {
                     _isUpper = true;
                     _isLower = false;
                     _isFreeForm = false;
-                  }else if (index == 1){_isLower = true;_isUpper = false;_isFreeForm =false;}
-                  if (index==2){_isFreeForm = true;_isLower = false;_isUpper =false;
+                  } else if (index == 1) {
+                    _isLower = true;
+                    _isUpper = false;
+                    _isFreeForm = false;
                   }
-              });
+                  if (index == 2) {
+                    _isFreeForm = true;
+                    _isLower = false;
+                    _isUpper = false;
+                  }
+                });
               },
               labelType: labelType,
               leading: showLeading
@@ -104,46 +178,48 @@ class _HomescreenState extends State<Homescreen> {
                   : const SizedBox(),
               destinations: <NavigationRailDestination>[
                 NavigationRailDestination(
-                  icon: Badge(isLabelVisible: _isUpper, child: Icon(Icons.keyboard_arrow_up)),
+                  icon: Badge(
+                    isLabelVisible: _isUpper,
+                    child: Icon(Icons.keyboard_arrow_up),
+                  ),
                   selectedIcon: Icon(Icons.keyboard_arrow_up),
                   label: Text("Upper"),
-
                 ),
-    
+
                 NavigationRailDestination(
-                  icon: Badge(isLabelVisible: _isLower, child: Icon(Icons.keyboard_arrow_down)),
+                  icon: Badge(
+                    isLabelVisible: _isLower,
+                    child: Icon(Icons.keyboard_arrow_down),
+                  ),
                   selectedIcon: Icon(Icons.keyboard_arrow_down),
                   label: Text("Lower"),
                 ),
-              
+
                 NavigationRailDestination(
-                  icon: Badge(label: Text('4'), child: Icon(Icons.favorite_border)),
-                  selectedIcon: Badge(label: Text('4'), child: Icon(Icons.star)),
+                  icon: Badge(
+                    label: Text('4'),
+                    child: Icon(Icons.favorite_border),
+                  ),
+                  selectedIcon: Badge(
+                    label: Text('4'),
+                    child: Icon(Icons.star),
+                  ),
                   label: Text("Freeform"),
                 ),
               ],
             ),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    if(_isUpper)
-                      Center(child: Text("Upper", style:TextStyle(fontSize: 25,backgroundColor:  Colors.blueAccent))),
-                    if (_isLower) 
-                      Center(child: Text("Lower", style:TextStyle(fontSize: 25,backgroundColor:  Colors.red))),
-                    if (_isFreeForm)
-                      Center(child: Text("FreeForm", style:TextStyle(fontSize: 25,backgroundColor:  Colors.yellowAccent))),
-                
-                    Center(child: Text("ASDASDASDDSdSDSDSDASDASDA", style:TextStyle(fontSize: 25,backgroundColor:  Colors.pink))),
-                    
-                
-                    
-                  ],
-                ),
-              ),
+
+            Expanded(
+              child: (_isUpper)
+                  ? UpperPage()
+                  : (_isLower)
+                  ? LowerPage()
+                  : (_isFreeForm)
+                  ? FreeForm()
+                  : SizedBox.shrink(),
+            ),
           ],
         ),
-            ),
       ),
     );
   }

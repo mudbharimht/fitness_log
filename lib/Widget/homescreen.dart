@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'FreeForm.dart';
-import 'LowerPage.dart';
-import 'UpperPage.dart';
+import 'SelectionPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:commuter/noname/WorkoutItem.dart';
+
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
   @override
@@ -26,16 +25,15 @@ class NavBar extends StatefulWidget {
 }
 
 class _NavBar extends State<NavBar> {
+  Future<List<Workout>> loadData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> workoutList = prefs.getStringList('workouts') ?? [];
 
- Future <List<Workout>> loadData() async{
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-List<String> workoutList = prefs.getStringList('workouts') ?? [];
-
-List<Workout> _workouts = workoutList
-    .map((w) => Workout.fromJson(jsonDecode(w)))
-    .toList();
-    return _workouts;
-}
+    List<Workout> workouts = workoutList
+        .map((w) => Workout.fromJson(jsonDecode(w)))
+        .toList();
+    return workouts;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,50 +58,49 @@ List<Workout> _workouts = workoutList
               );
             },
           ),
-         IconButton(
-  icon: const Icon(Icons.format_list_numbered),
-  tooltip: 'Show Workout Logs',
-  onPressed: () async {
-    List<Workout> workouts = await loadData();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text('Workout Logbook')),
-          body: SingleChildScrollView(
-            scrollDirection: Axis.horizontal, // Table might overflow
-            child: Table(
-              border: TableBorder.all(),
-              defaultColumnWidth: IntrinsicColumnWidth(),
-              children: [
-                TableRow(
-                  children: [
-                    Text(' Date '),
-                    Text(' Body Group '),
-                    Text(' Type '),
-                    Text(' Workout Mins '),
-                    Text(' Break Mins '),
-                  ],
-                ),
-                for (var w in workouts)
-                  TableRow(
-                    children: [
-                      Text("  ${w.date.substring(0,10)}  "),
-                      Text("  ${w.bodyGroup}  "),
-                      Text("  ${w.workoutType}  "),
-                      Text("  ${w.workoutMins.toStringAsFixed(1)}  "),
-                      Text("  ${w.breakMins.toStringAsFixed(1)}  "),
-                    ],
+          IconButton(
+            icon: const Icon(Icons.format_list_numbered),
+            tooltip: 'Show Workout Logs',
+            onPressed: () async {
+              List<Workout> workouts = await loadData();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                    appBar: AppBar(title: const Text('Workout Logbook')),
+                    body: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal, // Table might overflow
+                      child: Table(
+                        border: TableBorder.all(),
+                        defaultColumnWidth: IntrinsicColumnWidth(),
+                        children: [
+                          TableRow(
+                            children: [
+                              Text(' Date '),
+                              Text(' Body Group '),
+                              Text(' Type '),
+                              Text(' Workout Mins '),
+                              Text(' Break Mins '),
+                            ],
+                          ),
+                          for (var w in workouts)
+                            TableRow(
+                              children: [
+                                Text("  ${w.date.substring(0, 10)}  "),
+                                Text("  ${w.bodyGroup}  "),
+                                Text("  ${w.workoutType}  "),
+                                Text("  ${w.workoutMins.toStringAsFixed(1)}  "),
+                                Text("  ${w.breakMins.toStringAsFixed(1)}  "),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-              ],
-            ),
+                ),
+              );
+            },
           ),
-        ),
-      ),
-    );
-  },
-)
-,
         ],
       ),
       body: SideRail(),
@@ -121,9 +118,7 @@ class SideRail extends StatefulWidget {
 class _SideRail extends State<SideRail> {
   int _selectedIndex = 0;
 
-  bool _isLower = false;
-  bool _isUpper = false;
-  bool _isFreeForm = false;
+  int _selection = 0;
 
   NavigationRailLabelType labelType = NavigationRailLabelType.all;
   bool showLeading = false;
@@ -147,18 +142,12 @@ class _SideRail extends State<SideRail> {
                 setState(() {
                   _selectedIndex = index;
                   if (index == 0) {
-                    _isUpper = true;
-                    _isLower = false;
-                    _isFreeForm = false;
+                    _selection = 0;
                   } else if (index == 1) {
-                    _isLower = true;
-                    _isUpper = false;
-                    _isFreeForm = false;
+                    _selection = 1;
                   }
                   if (index == 2) {
-                    _isFreeForm = true;
-                    _isLower = false;
-                    _isUpper = false;
+                    _selection = 2;
                   }
                 });
               },
@@ -179,7 +168,7 @@ class _SideRail extends State<SideRail> {
               destinations: <NavigationRailDestination>[
                 NavigationRailDestination(
                   icon: Badge(
-                    isLabelVisible: _isUpper,
+                    isLabelVisible: (_selection == 0),
                     child: Icon(Icons.keyboard_arrow_up),
                   ),
                   selectedIcon: Icon(Icons.keyboard_arrow_up),
@@ -188,7 +177,7 @@ class _SideRail extends State<SideRail> {
 
                 NavigationRailDestination(
                   icon: Badge(
-                    isLabelVisible: _isLower,
+                    isLabelVisible: (_selection == 1),
                     child: Icon(Icons.keyboard_arrow_down),
                   ),
                   selectedIcon: Icon(Icons.keyboard_arrow_down),
@@ -209,15 +198,7 @@ class _SideRail extends State<SideRail> {
               ],
             ),
 
-            Expanded(
-              child: (_isUpper)
-                  ? UpperPage()
-                  : (_isLower)
-                  ? LowerPage()
-                  : (_isFreeForm)
-                  ? FreeForm()
-                  : SizedBox.shrink(),
-            ),
+            Expanded(child: SelectionPage(selection: _selection)),
           ],
         ),
       ),

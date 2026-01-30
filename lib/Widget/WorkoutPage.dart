@@ -17,24 +17,22 @@ class WorkoutPage extends StatefulWidget {
   State<WorkoutPage> createState() => _WorkoutPage();
 }
 
-
 class _WorkoutPage extends State<WorkoutPage> {
   int workoutTime = 0;
   int breakTime = 0;
   int warmUpTime = 0;
 
+  Future<void> saveData(String workoutString) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-Future<void> saveData(String workoutString) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> workoutList = prefs.getStringList('workouts') ?? [];
 
-  List<String> workoutList = prefs.getStringList('workouts') ?? [];
+    workoutList.add(workoutString);
 
-  workoutList.add(workoutString);
+    await prefs.setStringList('workouts', workoutList);
 
-  await prefs.setStringList('workouts', workoutList);
-
-  print("Success");
-}
+    print("Success");
+  }
 
   bool _isResting = false;
   Stopwatch warmUpWatch = Stopwatch();
@@ -42,13 +40,31 @@ Future<void> saveData(String workoutString) async {
   Stopwatch workoutWatch = Stopwatch();
   String buttonName = "Start Workout";
 
+Widget iconSelection() {
+  switch (widget.workoutType) {
+  case "Machine":
+  return Icon(Icons.roller_shades);
+  case "Weights":
+  return Icon(Icons.fitness_center);
+  default:
+  return Icon(Icons.sports_gymnastics);
+
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     warmUpWatch.start();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Exercise Page')),
-      body: Column(
+      appBar: AppBar(
+        title: const Text('Exercise Page'),
+        leading: IconButton(
+            icon: Row(
+              children: [ iconSelection()]),
+            tooltip: 'WorkoutType',
+            onPressed: () => Navigator.pop(context))),
+        body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -91,14 +107,15 @@ Future<void> saveData(String workoutString) async {
                   breakTime = breakWatch.elapsed.inSeconds;
                   warmUpTime = warmUpWatch.elapsed.inSeconds;
                   if (workoutTime > 3) {
-                    Workout _workoutInstance = new Workout(
+                    Workout workoutInstance = Workout(
                       date: DateTime.now().toIso8601String(),
                       bodyGroup: widget.bodyGroup,
                       workoutType: widget.workoutType,
                       workoutMins: (workoutTime / 60.0),
-                      breakMins: (breakTime / 60.0));
-        
-                    saveData(jsonEncode(_workoutInstance.toJson()));
+                      breakMins: (breakTime / 60.0),
+                    );
+
+                    saveData(jsonEncode(workoutInstance.toJson()));
                     setState(() {});
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(

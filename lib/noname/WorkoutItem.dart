@@ -10,25 +10,22 @@ class Workout {
     required this.bodyGroup,
     required this.workoutType,
     required this.workoutMins,
-    required this.breakMins
-
+    required this.breakMins,
   });
 
-  factory Workout.fromJson(Map<String,dynamic> json) =>Workout(
-    date: json['date'], 
-    bodyGroup: json['bodyGroup'], 
-    workoutType: json['workoutType'], 
-    workoutMins: json['workoutMins'], 
+  factory Workout.fromJson(Map<String, dynamic> json) => Workout(
+    date: json['date'],
+    bodyGroup: json['bodyGroup'],
+    workoutType: json['workoutType'],
+    workoutMins: json['workoutMins'],
     breakMins: json['breakMins'],
-    );
+  );
 
-    Map<String,dynamic> toJson() => {
-      'date': date,
- 'bodyGroup':bodyGroup,
- 'workoutType':workoutType,
- 'workoutMins':workoutMins,
- 'breakMins':breakMins,
-    };
-    
-} 
-
+  Map<String, dynamic> toJson() => {
+    'date': date,
+    'bodyGroup': bodyGroup,
+    'workoutType': workoutType,
+    'workoutMins': workoutMins,
+    'breakMins': breakMins,
+  };
+}

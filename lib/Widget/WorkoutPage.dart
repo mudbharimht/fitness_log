@@ -40,17 +40,16 @@ class _WorkoutPage extends State<WorkoutPage> {
   Stopwatch workoutWatch = Stopwatch();
   String buttonName = "Start Workout";
 
-Widget iconSelection() {
-  switch (widget.workoutType) {
-  case "Machine":
-  return Icon(Icons.roller_shades);
-  case "Weights":
-  return Icon(Icons.fitness_center);
-  default:
-  return Icon(Icons.sports_gymnastics);
-
+  Widget iconSelection() {
+    switch (widget.workoutType) {
+      case "Machine":
+        return Icon(Icons.roller_shades);
+      case "Weights":
+        return Icon(Icons.fitness_center);
+      default:
+        return Icon(Icons.sports_gymnastics);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +59,12 @@ Widget iconSelection() {
       appBar: AppBar(
         title: const Text('Exercise Page'),
         leading: IconButton(
-            icon: Row(
-              children: [ iconSelection()]),
-            tooltip: 'WorkoutType',
-            onPressed: () => Navigator.pop(context))),
-        body: Column(
+          icon: Row(children: [iconSelection()]),
+          tooltip: 'WorkoutType',
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -137,6 +137,7 @@ Widget iconSelection() {
           Text(warmUpTime.toString()),
         ],
       ),
+      backgroundColor: Theme.of(context).colorScheme.secondary,
     );
   }
 }

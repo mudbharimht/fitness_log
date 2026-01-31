@@ -40,18 +40,20 @@ class _NavBar extends State<NavBar> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Workout App'),
+
             Text(
-              "${DateTime.now().day}||${DateTime.now().month}",
-              style: TextStyle(fontSize: 12),
+              "${DateTime.now().day} || ${DateTime.now().month}",
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.format_list_numbered),
-            tooltip: 'Show Workout Logs',
+            icon: const Icon(Icons.border_bottom),
+            tooltip: 'SnackBar',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('This is a snacknnbar')),
@@ -59,7 +61,7 @@ class _NavBar extends State<NavBar> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.format_list_numbered),
+            icon: const Icon(Icons.line_weight),
             tooltip: 'Show Workout Logs',
             onPressed: () async {
               List<Workout> workouts = await loadData();
@@ -121,9 +123,6 @@ class _SideRail extends State<SideRail> {
   int _selection = 0;
 
   NavigationRailLabelType labelType = NavigationRailLabelType.all;
-  bool showLeading = false;
-  bool showTrailing = false;
-  double groupAlignment = -1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +134,7 @@ class _SideRail extends State<SideRail> {
           spacing: 10,
           children: <Widget>[
             NavigationRail(
-              backgroundColor: Color.fromARGB(200, 200, 200, 150),
               selectedIndex: _selectedIndex,
-              groupAlignment: groupAlignment,
               onDestinationSelected: (int index) {
                 setState(() {
                   _selectedIndex = index;
@@ -152,19 +149,6 @@ class _SideRail extends State<SideRail> {
                 });
               },
               labelType: labelType,
-              leading: showLeading
-                  ? FloatingActionButton(
-                      elevation: 0,
-                      onPressed: () {},
-                      child: const Icon(Icons.add),
-                    )
-                  : const SizedBox(),
-              trailing: showTrailing
-                  ? IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.more_horiz_rounded),
-                    )
-                  : const SizedBox(),
               destinations: <NavigationRailDestination>[
                 NavigationRailDestination(
                   icon: Badge(
@@ -178,7 +162,9 @@ class _SideRail extends State<SideRail> {
                 NavigationRailDestination(
                   icon: Badge(
                     isLabelVisible: (_selection == 1),
-                    child: Icon(Icons.keyboard_arrow_down),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                    ),
                   ),
                   selectedIcon: Icon(Icons.keyboard_arrow_down),
                   label: Text("Lower"),
@@ -186,20 +172,21 @@ class _SideRail extends State<SideRail> {
 
                 NavigationRailDestination(
                   icon: Badge(
-                    label: Text('4'),
-                    child: Icon(Icons.favorite_border),
+                    isLabelVisible: (_selection == 2),
+                    child: Icon(
+                      Icons.star_border,
+                    ),
                   ),
-                  selectedIcon: Badge(
-                    label: Text('4'),
-                    child: Icon(Icons.star),
-                  ),
+                  selectedIcon: Badge(child: Icon(Icons.star)),
                   label: Text("Freeform"),
                 ),
               ],
             ),
 
             Expanded(child: SelectionPage(selection: _selection)),
+         
           ],
+
         ),
       ),
     );
